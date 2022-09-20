@@ -11,6 +11,7 @@ enableEmoji = true
   copyright = "Copyright (c) 2022 Jack Greenberg"
   dark = "auto"
   highlight = true
+  mainSections = ["posts"]
 
 [menu]
   [[menu.main]]
