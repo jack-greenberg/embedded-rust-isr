@@ -1,5 +1,8 @@
-#![no_std]
-#![no_main]
+#![no_std] // Doesn't use the Rust standard library
+#![no_main] // A bit misleading: our program _does_ in fact have a main function, but we need to
+            // include this because otherwise, the Rust compiler makes assumptions about the the
+            // environment that our program executes in. We will still define a main function using
+            // the #[entry] tag.
 
 // Use panic_halt as a panicking behavior.
 use panic_halt as _; // you can put a breakpoint on `rust_begin_unwind` to catch panics
@@ -8,9 +11,7 @@ use panic_halt as _; // you can put a breakpoint on `rust_begin_unwind` to catch
 use cortex_m_rt::entry;
 
 // Import things from the HAL that we will use
-use stm32h7xx_hal::{
-    delay, pac, prelude::*
-};
+use stm32h7xx_hal::{delay, pac, prelude::*};
 
 #[entry]
 fn main() -> ! {
@@ -53,7 +54,10 @@ fn main() -> ! {
     // we call .freeze(), we get an instance of the Ccdr struct, which allows us to still modify a
     // few other parts of the Rcc so that we can enable/reset peripherals. We will use ccdr to
     // enable/reset peripherals.
-    let ccdr: stm32h7xx_hal::rcc::Ccdr = rcc.sys_ck(96.MHz()).pclk1(48.MHz()).freeze(pwrcfg, &dp.SYSCFG);
+    let ccdr: stm32h7xx_hal::rcc::Ccdr = rcc
+        .sys_ck(96.MHz())
+        .pclk1(48.MHz())
+        .freeze(pwrcfg, &dp.SYSCFG);
 
     // Type note included because of length. GPIO Port E
     //
