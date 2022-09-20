@@ -9,8 +9,8 @@ interact with these peripherals, we read from and write to sections of memory
 that are divided up as registers. In C, we might represent the registers using a
 struct where each member of the struct is a bitfield for the different bits in
 that register.</p><h3 id=c>C</h3><p>As an example, let&rsquo;s look at the <code>SPI_CFG1</code> register. It has an address
-offset of <code>0x08</code> from the base of <code>______TBD____</code>, so the address of the memory for
-that register is <code>______TBD____</code>. Bits 0-4 indicate the number of bits in a SPI
+offset of <code>0x08</code> from the base of <code>0x40013000</code>, so the address of the memory for
+that register is <code>0x40013008</code>. Bits 0-4 indicate the number of bits in a SPI
 message, whereas bit 15 enables the DMA (direct memory access peripheral) stream
 for TX (message transmission). In C, we represent the register like so:</p><p>In C, this might look like:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-c data-lang=c><span class=line><span class=cl><span class=k>struct</span> <span class=n>SPI_CFG1_s</span> <span class=p>{</span>
 </span></span><span class=line><span class=cl>    <span class=kt>uint8_t</span> <span class=nl>DSIZE</span> <span class=p>:</span> <span class=mi>5</span><span class=p>;</span> <span class=c1>// Number of bits in a SPI message
@@ -45,7 +45,8 @@ easier and more generalizable! In the meantime, here are some good resources to
 check out that helped me a lot:</p><ul><li><a href=https://blog.japaric.io/brave-new-io/>Brave new I/O</a>: A more thorough introduction to embedded Rust&rsquo;s approach to
 microcontroller code.</li><li><a href=https://github.com/joaocarvalhoopen/How_to_learn_modern_Rust#embedded-rust>Learn modern embedded Rust</a>: A list of resources (very meta) for learning
 embedded Rust!</li><li><a href=https://www.anyleaf.org/blog/rust-embedded-ecosystem-and-tools>Rust embedded ecosystem and tools</a>: A list of tools to make embedded Rust
-easier and smoother</li><li><a href=https://gist.github.com/jack-greenberg/1ad01de50bb7ce3f76c9a3cbf9f66c97>Blinky with a ton of comments</a>: A GitHub gist I wrote that contains a program
+easier and smoother</li><li><a href=https://dev.to/apollolabsbin/demystifying-rust-embedded-hal-split-and-constrain-methods-591e>Demystifying Rust Embedded HAL Split and Constrain Methods</a>: An informative
+post about <code>.split()</code> and <code>.constrain()</code>.</li><li><a href=https://gist.github.com/jack-greenberg/1ad01de50bb7ce3f76c9a3cbf9f66c97>Blinky with a ton of comments</a>: A GitHub gist I wrote that contains a program
 to blinky an LED on a <a href=https://www.adafruit.com/product/5032>WeAct Studio Dev Board</a> with almost every line
 commented in detail.</li></ul><div class=footnotes role=doc-endnotes><hr><ol><li id=fn:1><p>Basically object-oriented code in C&#160;<a href=#fnref:1 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:2><p>There are two top-level structs we use: the <code>cortex_m::Peripherals</code> and
 <code>pac::Peripherals</code>. The former is for things specific to Cortex M
