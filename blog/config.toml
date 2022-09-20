@@ -1,8 +1,8 @@
 baseURL = "https://jackgreenberg.co"
 languageCode = "en-us"
 title = "Jack Greenberg"
-pygmentsCodeFences = false
-pygmentsUseClasses=false
+pygmentsCodeFences = true
+pygmentsUseClasses=true
 enableInlineShortcodes = true
 enableEmoji = true
 
@@ -10,7 +10,7 @@ enableEmoji = true
   description = "Jack's blog and portfolio."
   copyright = "Copyright (c) 2022 Jack Greenberg"
   dark = "auto"
-  highlight = false
+  highlight = true
 
 [menu]
   [[menu.main]]
