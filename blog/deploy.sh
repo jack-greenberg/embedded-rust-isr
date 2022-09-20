@@ -26,7 +26,7 @@ hugo --minify
 
 echo "Updating prod pages branch"
 cd public
-echo "test.jackgreenberg.co" > CNAME
+echo "blog.jackgreenberg.co" > CNAME
 
 git add --all && git commit -m "Deploy changes"
 

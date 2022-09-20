@@ -1,4 +1,4 @@
-baseURL = "https://jackgreenberg.co"
+baseURL = "https://blog.jackgreenberg.co"
 languageCode = "en-us"
 title = "Jack Greenberg"
 pygmentsCodeFences = true
