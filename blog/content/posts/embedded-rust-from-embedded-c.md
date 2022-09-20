@@ -26,8 +26,8 @@ that register.
 ### C
 
 As an example, let's look at the `SPI_CFG1` register. It has an address
-offset of `0x08` from the base of `______TBD____`, so the address of the memory for
-that register is `______TBD____`. Bits 0-4 indicate the number of bits in a SPI
+offset of `0x08` from the base of `0x40013000`, so the address of the memory for
+that register is `0x40013008`. Bits 0-4 indicate the number of bits in a SPI
 message, whereas bit 15 enables the DMA (direct memory access peripheral) stream
 for TX (message transmission). In C, we represent the register like so:
 
@@ -105,6 +105,8 @@ check out that helped me a lot:
   embedded Rust!
 * [Rust embedded ecosystem and tools]: A list of tools to make embedded Rust
   easier and smoother
+* [Demystifying Rust Embedded HAL Split and Constrain Methods]: An informative
+  post about `.split()` and `.constrain()`.
 * [Blinky with a ton of comments]: A GitHub gist I wrote that contains a program
   to blinky an LED on a [WeAct Studio Dev Board] with almost every line
   commented in detail.
@@ -114,3 +116,4 @@ check out that helped me a lot:
 [Rust embedded ecosystem and tools]: https://www.anyleaf.org/blog/rust-embedded-ecosystem-and-tools
 [WeAct Studio Dev Board]: https://www.adafruit.com/product/5032
 [Blinky with a ton of comments]: https://gist.github.com/jack-greenberg/1ad01de50bb7ce3f76c9a3cbf9f66c97
+[Demystifying Rust Embedded HAL Split and Constrain Methods]: https://dev.to/apollolabsbin/demystifying-rust-embedded-hal-split-and-constrain-methods-591e
