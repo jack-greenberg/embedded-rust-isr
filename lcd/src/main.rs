@@ -14,9 +14,17 @@ use cortex_m_rt::entry;
 use stm32h7xx_hal::{delay, pac, prelude::*, spi};
 
 use st7735_lcd::{self, Orientation};
-use embedded_graphics::image::{Image, ImageRaw, ImageRawLE};
-use embedded_graphics::pixelcolor::Rgb565;
-use embedded_graphics::prelude::*;
+// use embedded_graphics::image::{Image, ImageRaw, ImageRawLE};
+// use embedded_graphics::pixelcolor::Rgb565;
+// use embedded_graphics::prelude::*;
+use embedded_graphics::{
+    mono_font::{ascii::FONT_6X10, MonoTextStyle},
+    pixelcolor::BinaryColor,
+    pixelcolor::Rgb565,
+    prelude::*,
+    text::{Alignment, Text},
+};
+
 
 #[entry]
 fn main() -> ! {
@@ -113,7 +121,7 @@ fn main() -> ! {
     // Aiyah, magic numbers :(
     //
     // Basically this just sets up our device driver for the ST7735 which controls the LCD screen
-    let mut lcd = st7735_lcd::ST7735::new(spi, dc, rst, false, true, 160, 80);
+    let mut lcd = st7735_lcd::ST7735::new(spi, dc, rst, false, true, 162, 132);
 
     // Initialize the LCD display
     lcd.init(&mut delay).unwrap();
@@ -127,11 +135,11 @@ fn main() -> ! {
     // Ummm....?
     lcd.set_offset(0, 25);
 
-    // Let's get an image in here!
-    let image_raw: ImageRawLE<Rgb565> =
-        ImageRaw::new(include_bytes!("../assets/ferris.raw"), 86);
-    let image = Image::new(&image_raw, Point::new(34, 8));
-    image.draw(&mut lcd).unwrap();
+    // Some text on ur screen?
+    let style = MonoTextStyle::new(&FONT_6X10, Rgb565::WHITE);
+
+    // Create a text at position (0, 0) and draw it using the previously defined style
+    Text::new("Hello, world!", Point::new(5, 20), style).draw(&mut lcd).unwrap();
     
     pwm.enable();
 
