@@ -14,16 +14,17 @@ use cortex_m_rt::entry;
 use stm32h7xx_hal::{delay, pac, prelude::*, spi};
 
 use st7735_lcd::{self, Orientation};
-// use embedded_graphics::image::{Image, ImageRaw, ImageRawLE};
-// use embedded_graphics::pixelcolor::Rgb565;
-// use embedded_graphics::prelude::*;
 use embedded_graphics::{
     mono_font::{ascii::FONT_6X10, MonoTextStyle},
-    pixelcolor::BinaryColor,
     pixelcolor::Rgb565,
     prelude::*,
-    text::{Alignment, Text},
+    text::{Text},
 };
+
+const LCD_WIDTH: u32 = 162;
+const LCD_HEIGHT: u32 = 132;
+const LCD_COLOR: bool = false; // BGR instead of RGB
+const LCD_INVERTED: bool = true; // Color should be inverted to display correctly
 
 
 #[entry]
@@ -116,12 +117,12 @@ fn main() -> ! {
     let mut pwm = pwm.into_complementary(lcd_brightness);
     
     let max_duty = pwm.get_max_duty();
-    pwm.set_duty(max_duty / 4);
+    pwm.set_duty(max_duty);
 
-    // Aiyah, magic numbers :(
-    //
     // Basically this just sets up our device driver for the ST7735 which controls the LCD screen
-    let mut lcd = st7735_lcd::ST7735::new(spi, dc, rst, false, true, 162, 132);
+    //
+    // https://www.waveshare.com/wiki/0.96inch_LCD_Module
+    let mut lcd = st7735_lcd::ST7735::new(spi, dc, rst, LCD_COLOR, LCD_INVERTED, LCD_WIDTH, LCD_HEIGHT);
 
     // Initialize the LCD display
     lcd.init(&mut delay).unwrap();
@@ -129,19 +130,40 @@ fn main() -> ! {
     // Sideways plz
     lcd.set_orientation(&Orientation::LandscapeSwapped).unwrap();
 
-    // Reset ig?
+    // Clear the screen to black
     lcd.clear(Rgb565::BLACK).unwrap();
 
-    // Ummm....?
+    // Offset of something... not sure what
+    //
+    // "Global offset of the image"
+    //
+    // This is an area for more research...
     lcd.set_offset(0, 25);
 
-    // Some text on ur screen?
+    // Sets the backlight of the LCD to enabled so we can see it
+    pwm.enable();
+
+    // Let's get a font that is 6x10px and white
     let style = MonoTextStyle::new(&FONT_6X10, Rgb565::WHITE);
 
     // Create a text at position (0, 0) and draw it using the previously defined style
-    Text::new("Hello, world!", Point::new(5, 20), style).draw(&mut lcd).unwrap();
-    
-    pwm.enable();
+
+    let text = "Hello, OSFC!\nDo new lines work?";
+    for i in 0..(text.len() + 1) {
+        Text::new(&text[0..i], Point::new(5, 20), style)
+            .draw(&mut lcd)
+            .unwrap();
+        delay.delay_ms(100_u16);
+    }
+    // Text::new("H", Point::new(5, 20), style).draw(&mut lcd).unwrap();
+    // delay.delay_ms(100_u16);
+    // Text::new("He", Point::new(5, 20), style).draw(&mut lcd).unwrap();
+    // delay.delay_ms(100_u16);
+    // Text::new("Hel", Point::new(5, 20), style).draw(&mut lcd).unwrap();
+    // delay.delay_ms(100_u16);
+    // Text::new("Hell", Point::new(5, 20), style).draw(&mut lcd).unwrap();
+    // delay.delay_ms(100_u16);
+    // Text::new("Hello", Point::new(5, 20), style).draw(&mut lcd).unwrap();
 
     loop {
         // Toggle the LED (on -> off, or off -> on)
