@@ -13,19 +13,18 @@ use cortex_m_rt::entry;
 // Import things from the HAL that we will use
 use stm32h7xx_hal::{delay, pac, prelude::*, spi};
 
-use st7735_lcd::{self, Orientation};
 use embedded_graphics::{
-    mono_font::{ascii::FONT_6X10, MonoTextStyle},
+    mono_font::{ascii::FONT_10X20, MonoTextStyle},
     pixelcolor::Rgb565,
     prelude::*,
-    text::{Text},
+    text::Text,
 };
+use st7735_lcd::{self, Orientation};
 
 const LCD_WIDTH: u32 = 162;
 const LCD_HEIGHT: u32 = 132;
 const LCD_COLOR: bool = false; // BGR instead of RGB
 const LCD_INVERTED: bool = true; // Color should be inverted to display correctly
-
 
 #[entry]
 fn main() -> ! {
@@ -99,7 +98,7 @@ fn main() -> ! {
     // Woohoo! Turns out we need to use CS !!!
     let _cs = gpioe.pe11.into_push_pull_output().set_low();
     let rst = gpioe.pe9.into_push_pull_output(); // This is reset. On our device, it is just tied
-                                                  // high, so we don't control it
+                                                 // high, so we don't control it
     let dc = gpioe.pe13.into_push_pull_output(); // Data/Command pin
 
     let spi: spi::Spi<_, _, u8> = dp.SPI4.spi(
@@ -110,24 +109,53 @@ fn main() -> ! {
         &ccdr.clocks,
     );
 
+    // This pin is used to PWM the lamp backlight of the LCD to change the brightness
     let lcd_brightness = gpioe.pe10.into_alternate::<1>();
-    
+
+    // However, this pin is connected to TIM1 Channel 2N, which is a complementary channel.
+    // This means we need to first initialize the normal channel output (i.e. TIM1_CH2), which is
+    // connected to PJ11 among other things (we switch between them using the alternate pin
+    // functions).
+    //
+    // So we initialize PWM with PJ11 and then switch it over to use PE10. I wonder if there's a
+    // better way to do this...
+
+    // Set up the pin to use in the PWM
     let gpioj = dp.GPIOJ.split(ccdr.peripheral.GPIOJ);
-    let pwm = dp.TIM1.pwm(gpioj.pj11.into_alternate::<1>(), 1.MHz(), ccdr.peripheral.TIM1, &ccdr.clocks);
+
+    // Initialize PWM at 1 megahertz. The datasheet says that if PJ11 is in Alternate Function mode
+    // 1, it is connected to TIM1_CH2, so we use .into_alternate::<1>() to make that happen. Kinda
+    // neat :)
+    let pwm = dp.TIM1.pwm(
+        gpioj.pj11.into_alternate::<1>(),
+        1.MHz(),
+        ccdr.peripheral.TIM1,
+        &ccdr.clocks,
+    );
+
+    // Finally, use PE10 as the complementary channel. Not sure if this disables PJ11 or not, but
+    // it doesn't really matter to me because we aren't using it anywhere else.
     let mut pwm = pwm.into_complementary(lcd_brightness);
-    
+
+    // Need to know what the max duty cycle is (this corresponds to a duty cycle of 100%) so that
+    // we can scale it.
     let max_duty = pwm.get_max_duty();
+
+    // Set the duty cycle (we just keep it at 100%, but we could lower brightness if we wanted to
     pwm.set_duty(max_duty);
 
     // Basically this just sets up our device driver for the ST7735 which controls the LCD screen
     //
     // https://www.waveshare.com/wiki/0.96inch_LCD_Module
-    let mut lcd = st7735_lcd::ST7735::new(spi, dc, rst, LCD_COLOR, LCD_INVERTED, LCD_WIDTH, LCD_HEIGHT);
+    let mut lcd =
+        st7735_lcd::ST7735::new(spi, dc, rst, LCD_COLOR, LCD_INVERTED, LCD_WIDTH, LCD_HEIGHT);
 
     // Initialize the LCD display
     lcd.init(&mut delay).unwrap();
-    
-    // Sideways plz
+
+    // Sideways plz (need to use Swapped because there are two different Landscapes (offset by
+    // 180deg), and it just so happens that we need LandscapeSwapped instead of Landscape. This was
+    // determined by just trying each one.
     lcd.set_orientation(&Orientation::LandscapeSwapped).unwrap();
 
     // Clear the screen to black
@@ -143,33 +171,28 @@ fn main() -> ! {
     // Sets the backlight of the LCD to enabled so we can see it
     pwm.enable();
 
-    // Let's get a font that is 6x10px and white
-    let style = MonoTextStyle::new(&FONT_6X10, Rgb565::WHITE);
+    // Let's get a font that is 10px by 20px and white
+    let style = MonoTextStyle::new(&FONT_10X20, Rgb565::WHITE);
 
-    // Create a text at position (0, 0) and draw it using the previously defined style
+    // The text we want to display
+    let text = "Hello, OSFC!";
 
-    let text = "Hello, OSFC!\nDo new lines work?";
+    // For each character in the text...
     for i in 0..(text.len() + 1) {
+        // ...create a Text object to display the text on the LCD screen and draw it
         Text::new(&text[0..i], Point::new(5, 20), style)
             .draw(&mut lcd)
             .unwrap();
+
+        // ...and delay so that it looks like typing
         delay.delay_ms(100_u16);
     }
-    // Text::new("H", Point::new(5, 20), style).draw(&mut lcd).unwrap();
-    // delay.delay_ms(100_u16);
-    // Text::new("He", Point::new(5, 20), style).draw(&mut lcd).unwrap();
-    // delay.delay_ms(100_u16);
-    // Text::new("Hel", Point::new(5, 20), style).draw(&mut lcd).unwrap();
-    // delay.delay_ms(100_u16);
-    // Text::new("Hell", Point::new(5, 20), style).draw(&mut lcd).unwrap();
-    // delay.delay_ms(100_u16);
-    // Text::new("Hello", Point::new(5, 20), style).draw(&mut lcd).unwrap();
 
     loop {
-        // Toggle the LED (on -> off, or off -> on)
-        led.toggle();
-
-        // Delays for 500 milliseconds
-        delay.delay_ms(500_u16);
+        // // Toggle the LED (on -> off, or off -> on)
+        // led.toggle();
+        //
+        // // Delays for 500 milliseconds
+        // delay.delay_ms(500_u16);
     }
 }
